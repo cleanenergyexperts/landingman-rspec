@@ -1,4 +1,6 @@
 require 'rspec'
+require 'nokogiri'
+require 'capybara-webkit'
 require 'capybara/rspec'
 require 'middleman-core'
 require 'middleman/rack'
