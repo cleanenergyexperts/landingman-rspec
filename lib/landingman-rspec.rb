@@ -8,9 +8,9 @@ require 'middleman-core/rack'
 require 'uri'
 
 module LandingmanHelpers
-	###
-	# Common Test Constants
-	###
+  ###
+  # Common Test Constants
+  ###
   FORM_XPATH = "//form[contains(@action, '/track/lead')]"
   UUID_REGEX = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
   TEST_DATA = {
@@ -29,8 +29,8 @@ module LandingmanHelpers
   }
 
   ###
-	# Helper Functions
-	###
+  # Helper Functions
+  ###
 
   def uuid_regex
     UUID_REGEX
@@ -61,53 +61,75 @@ module LandingmanHelpers
     return false
   end
 
+  def fill_out_input(container, input, value)
+    case input['type']
+    when 'radio'
+      container.choose(input['id'] || input['name']) if input.value == value
+    when 'checkbox'
+      container.check(input['id'] || input['name']) if input.value == value
+    else
+      input.set(value)
+    end
+  end
+
+  def try_select(options, value)
+    return nil if options.empty?
+    option = options.find {|o| o.value == value } || options.last
+    option.select_option
+  end
+
   def fill_out_form(form)
     # Fill out inputs
     inputs = form.find_all('input')
     inputs.each do |input|
-    case input['name']
-    when 'zip'
-      input.set(TEST_DATA[:zip])
-    when 'phone'
-      input.set(TEST_DATA[:phone])
-    when 'phone_home'
-      input.set(TEST_DATA[:phone])
-    when 'first_name'
-      input.set(TEST_DATA[:first_name])
-    when 'last_name'
-      input.set(TEST_DATA[:last_name])
-    when 'email'
-      input.set(TEST_DATA[:email])
-    when 'property_ownership'
-      input.set(TEST_DATA[:property_ownership])
-    when 'street'
-      input.set(TEST_DATA[:street])
-    when 'address'
-      input.set(TEST_DATA[:street])
-    when 'city'
-      input.set(TEST_DATA[:city])
-    when 'state'
-      input.set(TEST_DATA[:state])
-    else
-      # unknown input
-    end
+      case input['name']
+      when 'zip'
+        input.set(TEST_DATA[:zip])
+      when 'zip1'
+        input.set(TEST_DATA[:zip])
+      when 'phone'
+        input.set(TEST_DATA[:phone])
+      when 'phone_home'
+        input.set(TEST_DATA[:phone])
+      when 'first_name'
+        input.set(TEST_DATA[:first_name])
+      when 'last_name'
+        input.set(TEST_DATA[:last_name])
+      when 'email'
+        input.set(TEST_DATA[:email])
+      when 'property_ownership'
+        fill_out_input(form, input, TEST_DATA[:property_ownership])
+      when 'street'
+        input.set(TEST_DATA[:street])
+      when 'address'
+        input.set(TEST_DATA[:street])
+      when 'city'
+        input.set(TEST_DATA[:city])
+      when 'state'
+        input.set(TEST_DATA[:state])
+      else
+        # unknown input
+      end
     end
     selects = form.find_all('select')
     selects.each do |select|
-    case select['name']
-    when 'electric_bill'
-      select.set(TEST_DATA[:electric_bill])
-    when 'electric_utility'
-      select.set(TEST_DATA[:electric_utility])
-    when 'electric_utility-CA'
-      select.set(TEST_DATA[:electric_utility])
-    when 'roof_shade'
-      select.set(TEST_DATA[:roof_shade])
-    when 'state'
-      select.set(TEST_DATA[:state])
-    else
-      # unknown select input
-    end
+      key = select['name'] || select['id']
+      options = select.all('option')
+      case key
+      when 'electric_bill'
+        try_select(options, TEST_DATA[:electric_bill])
+      when 'electric_utility'
+        try_select(options, TEST_DATA[:electric_utility])
+      when 'electric_utility-CA'
+        try_select(options, TEST_DATA[:electric_utility])
+      when 'roof_shade'
+        try_select(options, TEST_DATA[:roof_shade])
+      when 'state'
+        try_select(options, TEST_DATA[:state])
+      else
+        # unknown select input
+        options.last.select_option unless options.empty?
+      end
     end
   end
 
@@ -126,6 +148,7 @@ module LandingmanHelpers
     form.find_all('input[type=button]').each {|btn| buttons << btn }
     form.find_all('button').each {|btn| buttons << btn }
     form.find_all('a.btn').each {|btn| buttons << btn }
+    form.find_all('a.continue').each {|btn| buttons << btn }
     # TODO: If buttons.size > 1 then we have too many choices...so how do we pick one?
     # TODO: Do we get all of the buttons using this strategy?
     return buttons
