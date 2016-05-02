@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "landingman-rspec"
-  s.version     = "0.0.3"
+  s.version     = "0.0.4"
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Matt Snider"]
   s.email       = ["matt@cleanenergyexperts.com"]
@@ -24,5 +24,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency('rspec', ['~> 3.4'])
   s.add_runtime_dependency('capybara', ['~> 2.5'])
   s.add_runtime_dependency('capybara-webkit', ['~> 1.10'])
-  s.add_runtime_dependency('nokogiri', ['~> 1.6', '>= 1.6.7.2'])
+  s.add_runtime_dependency('nokogiri', ['~> 1.6'])
 end
