@@ -25,7 +25,8 @@ module LandingmanHelpers
     roof_shade: 'No Shade',
     street: '1601 N. SEPULVEDA BLVD, #227',
     city: 'MANHATTAN BEACH',
-    state: 'CA'
+    state: 'CA',
+    ac_project_type: 'Repair/Service Central AC'
   }
 
   ###
@@ -124,6 +125,8 @@ module LandingmanHelpers
         try_select(options, TEST_DATA[:electric_utility])
       when 'roof_shade'
         try_select(options, TEST_DATA[:roof_shade])
+      when 'ac_project_type'
+        try_select(options, TEST_DATA[:ac_project_type])
       when 'state'
         try_select(options, TEST_DATA[:state])
       else
@@ -182,6 +185,8 @@ RSpec.shared_examples 'a landing page' do |url|
     form = find_form(page)
     next if form.nil?
     5.times do
+
+
       # Jump out if the URL changes, since this means we were redirect
       break if current_path != landing_path
 
@@ -200,6 +205,19 @@ RSpec.shared_examples 'a landing page' do |url|
 
         # Fill out form and submit correctly
         fill_out_form(form)
+
+        inputs = form.find_all('input')
+        inputs.each do |input|
+          puts "#{input['id']}, value = #{input.value}"
+        end
+
+        selects = form.find_all('select')
+        selects.each do |select|
+          puts "#{select['id']}, value = #{select.value}"
+        end
+        puts buttons[0]['id']
+        puts
+
         button.click
 
         form = find_form(page)
