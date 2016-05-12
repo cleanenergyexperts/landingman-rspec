@@ -160,6 +160,11 @@ module LandingmanHelpers
     query[key]
   end
 
+  def host(url)
+    uri = URI.parse(url)
+    uri.host
+  end
+
   def pageid_type(page)
     return page.evaluate_script('typeof window.pageid')
   end
@@ -215,8 +220,9 @@ RSpec.shared_examples 'a landing page' do |url|
     # So verify that we were redirected with the CSTransitv2 `lid` parameter
     expect(query_param(current_url, 'lid')).to match(uuid_regex)
 
-    # Should not have any JavaScript errors in the console
-    errors = page.driver.error_messages
+    # Should not have any JavaScript errors in the console (only look at errors from the same host for now)
+    current_host = host(current_url)
+    errors = page.driver.error_messages.reject {|err| host(err[:source]) == current_host }
     expect(errors).to be_empty, "expected no JavaScript errors, got #{errors.inspect}"
   end
 end
