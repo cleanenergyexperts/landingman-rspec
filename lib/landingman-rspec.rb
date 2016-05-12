@@ -182,6 +182,11 @@ RSpec.shared_examples 'a landing page' do |url|
     # CHECK: PageId is present
     expect(pageid_type(page)).to eq('object')
 
+    # Should not have any JavaScript errors in the console (only look at errors from the same host for now)
+    current_host = host(current_url)
+    errors = page.driver.error_messages.select {|err| host(err[:source]) == current_host }
+    expect(errors).to be_empty, "expected no JavaScript errors, got #{errors.inspect}"
+
     # CHECK: Lead capture form is working correctly
     landing_path = current_path
     form = find_form(page)
@@ -219,10 +224,5 @@ RSpec.shared_examples 'a landing page' do |url|
     # This means its got to be a Thank-You Page
     # So verify that we were redirected with the CSTransitv2 `lid` parameter
     expect(query_param(current_url, 'lid')).to match(uuid_regex)
-
-    # Should not have any JavaScript errors in the console (only look at errors from the same host for now)
-    current_host = host(current_url)
-    errors = page.driver.error_messages.select {|err| host(err[:source]) == current_host }
-    expect(errors).to be_empty, "expected no JavaScript errors, got #{errors.inspect}"
   end
 end
