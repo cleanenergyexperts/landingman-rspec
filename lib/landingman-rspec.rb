@@ -222,7 +222,7 @@ RSpec.shared_examples 'a landing page' do |url|
 
     # Should not have any JavaScript errors in the console (only look at errors from the same host for now)
     current_host = host(current_url)
-    errors = page.driver.error_messages.reject {|err| host(err[:source]) == current_host }
+    errors = page.driver.error_messages.select {|err| host(err[:source]) == current_host }
     expect(errors).to be_empty, "expected no JavaScript errors, got #{errors.inspect}"
   end
 end
