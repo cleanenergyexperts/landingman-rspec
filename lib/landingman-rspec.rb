@@ -187,7 +187,9 @@ RSpec.shared_examples 'a landing page' do |url|
     landing_path = current_path
     form = find_form(page)
     next if form.nil?
-    5.times do
+
+    puts "#{url}"
+    8.times do
 
 
       # Jump out if the URL changes, since this means we were redirect
@@ -195,37 +197,57 @@ RSpec.shared_examples 'a landing page' do |url|
 
       # Find the buttons
       buttons = find_buttons(form)
+
+      if(buttons.size == 0)
+        sleep(10)
+        buttons = find_buttons(form)
+      end
+
       if buttons.size > 0 then
         button = buttons.first
 
         # Test the error handling when the form is in an invalid state
         if form_is_invalid?(form) then
           prompt = accept_alert do
-            button.click
+            button.trigger("click")
           end
           expect(prompt).to match(/Please correct the following errors/)
         end
 
         # Fill out form and submit correctly
+        inputs = form.find_all('input')
+        selects = form.find_all('select')
+
+        if(inputs.empty? && selects.empty?)
+          puts 'Empty form, waiting...'
+          sleep(10)
+          inputs = form.find_all('input')
+          selects = form.find_all('select')
+        end
+
         fill_out_form(form)
 
-        inputs = form.find_all('input')
         inputs.each do |input|
           puts "#{input['id']}, value = #{input.value}"
         end
 
-        selects = form.find_all('select')
         selects.each do |select|
           puts "#{select['id']}, value = #{select.value}"
         end
         puts buttons[0]['id']
         puts
 
-        button.click
+        button.trigger("click")
 
         form = find_form(page)
+
+        if(form.nil?)
+          puts "form is Nil - exiting"
+        end
+
         break if form.nil?
       else
+        puts "no buttons to click - exiting"
         # In general we shouldn't get to this state ever, but if we do
         # there is no place to go, so let's just out of the loop
         break
