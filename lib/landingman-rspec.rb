@@ -21,6 +21,8 @@ module LandingmanHelpers
     email: 'SyntheticsTest@SynthTest.com',
     electric_bill: '$401-500',
     property_ownership: 'OWN',
+    property_ownership_select: 'single',
+    home_type: 'single',
     electric_utility: 'Los Angeles Dept Water & Power (LADWP)',
     roof_shade: 'No Shade',
     street: '1601 N. SEPULVEDA BLVD, #227',
@@ -118,6 +120,10 @@ module LandingmanHelpers
       case key
       when 'electric_bill'
         try_select(options, TEST_DATA[:electric_bill])
+      when 'property_ownership'
+        try_select(options, TEST_DATA[:property_ownership_select])
+      when 'home_type'
+        try_select(options, TEST_DATA[:home_type])
       when 'electric_utility'
         try_select(options, TEST_DATA[:electric_utility])
       when 'electric_utility-CA'
