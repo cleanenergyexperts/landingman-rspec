@@ -21,12 +21,33 @@ module LandingmanHelpers
     email: 'SyntheticsTest@SynthTest.com',
     electric_bill: '$401-500',
     property_ownership: 'OWN',
+    property_ownership_select: 'single',
+    home_type: 'single',
     electric_utility: 'Los Angeles Dept Water & Power (LADWP)',
     roof_shade: 'No Shade',
     street: '1601 N. SEPULVEDA BLVD, #227',
     city: 'MANHATTAN BEACH',
     state: 'CA'
   }
+
+  ###
+  # Javascript to override setTimeout so it returns immediately so our tests
+  # don't have to wait for any potential animation on the page to run.
+  # @see http://stackoverflow.com/a/17676303
+  ###
+  WINDOW_TIMEOUT_JS_OVERRIDE = <<EOT
+window.oldSetTimeout = window.setTimeout;
+window.setTimeout = function(func, delay) {
+  return window.oldSetTimeout(function() {
+    try {
+      func();
+    }
+    catch (exception) {
+      // Do Error Handling
+    }
+  }, 0);
+};
+EOT
 
   ###
   # Helper Functions
@@ -118,6 +139,10 @@ module LandingmanHelpers
       case key
       when 'electric_bill'
         try_select(options, TEST_DATA[:electric_bill])
+      when 'property_ownership'
+        try_select(options, TEST_DATA[:property_ownership_select])
+      when 'home_type'
+        try_select(options, TEST_DATA[:home_type])
       when 'electric_utility'
         try_select(options, TEST_DATA[:electric_utility])
       when 'electric_utility-CA'
@@ -187,11 +212,14 @@ RSpec.shared_examples 'a landing page' do |url|
     errors = page.driver.error_messages.select {|err| host(err[:source]) == current_host }
     expect(errors).to be_empty, "expected no JavaScript errors, got #{errors.inspect}"
 
+    # Inject a custom setTimeout onto the page that only waits 10 ms (we don't want to wait while testing)
+    page.execute_script(LandingmanHelpers::WINDOW_TIMEOUT_JS_OVERRIDE)
+
     # CHECK: Lead capture form is working correctly
     landing_path = current_path
     form = find_form(page)
     next if form.nil?
-    5.times do
+    6.times do
       # Jump out if the URL changes, since this means we were redirect
       break if current_path != landing_path
 
@@ -203,14 +231,14 @@ RSpec.shared_examples 'a landing page' do |url|
         # Test the error handling when the form is in an invalid state
         if form_is_invalid?(form) then
           prompt = accept_alert do
-            button.click
+            button.trigger('click')
           end
           expect(prompt).to match(/Please correct the following errors/)
         end
 
         # Fill out form and submit correctly
         fill_out_form(form)
-        button.click
+        button.trigger('click')
 
         form = find_form(page)
         break if form.nil?
@@ -221,8 +249,12 @@ RSpec.shared_examples 'a landing page' do |url|
       end
     end # if we have multiple screens then keep looping
 
+    # Make sure we were redirect to the thanks page
+    expect(current_path).not_to equal(landing_path), "expected to be redirect to thanks page, got landing page"
+
     # This means its got to be a Thank-You Page
     # So verify that we were redirected with the CSTransitv2 `lid` parameter
-    expect(query_param(current_url, 'lid')).to match(uuid_regex)
+    lid = query_param(current_url, 'lid')
+    expect(lid).to match(uuid_regex), "expected UUID lid query parameter on thanks page, got #{lid.inspect} on URL: #{current_url}"
   end
 end
