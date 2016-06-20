@@ -197,7 +197,7 @@ RSpec.shared_examples 'a landing page' do |url|
     landing_path = current_path
     form = find_form(page)
     next if form.nil?
-    5.times do
+    6.times do
       # Jump out if the URL changes, since this means we were redirect
       break if current_path != landing_path
 
