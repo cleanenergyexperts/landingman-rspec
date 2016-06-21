@@ -41,9 +41,8 @@ window.setTimeout = function(func, delay) {
   return window.oldSetTimeout(function() {
     try {
       func();
-    }
-    catch (exception) {
-      // Do Error Handling
+    } catch (exception) {
+      // Swallow the JS error
     }
   }, 0);
 };
@@ -194,6 +193,24 @@ EOT
     return page.evaluate_script('typeof window.pageid')
   end
 
+  def click_button(page, button)
+    button.click
+  rescue Capybara::Webkit::ClickFailed => e
+    # Hide the overlapping element and then do a regular click
+    if m = e.message.match(/overlapping element (.*) at position/) then
+      overlapping_xpath = m.captures.first.strip
+      overlapping_script = <<EOT
+var elem = document.evaluate("#{overlapping_xpath}", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+if (elem)
+  elem.parentNode.removeChild(elem);
+EOT
+      page.execute_script(overlapping_script)
+      click_button(page, button)
+    else
+      raise e
+    end
+  end
+
 end
 
 ###
@@ -216,10 +233,10 @@ RSpec.shared_examples 'a landing page' do |url|
     page.execute_script(LandingmanHelpers::WINDOW_TIMEOUT_JS_OVERRIDE)
 
     # CHECK: Lead capture form is working correctly
-    landing_path = current_path
+    landing_path = current_path.to_s
     form = find_form(page)
     next if form.nil?
-    6.times do
+    8.times do
       # Jump out if the URL changes, since this means we were redirect
       break if current_path != landing_path
 
@@ -231,14 +248,14 @@ RSpec.shared_examples 'a landing page' do |url|
         # Test the error handling when the form is in an invalid state
         if form_is_invalid?(form) then
           prompt = accept_alert do
-            button.trigger('click')
+            click_button(page, button)
           end
           expect(prompt).to match(/Please correct the following errors/)
         end
 
         # Fill out form and submit correctly
         fill_out_form(form)
-        button.trigger('click')
+        click_button(page, button)
 
         form = find_form(page)
         break if form.nil?
@@ -248,9 +265,6 @@ RSpec.shared_examples 'a landing page' do |url|
         break
       end
     end # if we have multiple screens then keep looping
-
-    # Make sure we were redirect to the thanks page
-    expect(current_path).not_to equal(landing_path), "expected to be redirect to thanks page, got landing page"
 
     # This means its got to be a Thank-You Page
     # So verify that we were redirected with the CSTransitv2 `lid` parameter
