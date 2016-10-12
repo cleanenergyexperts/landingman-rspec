@@ -229,6 +229,9 @@ RSpec.shared_examples 'a landing page' do |url|
     errors = page.driver.error_messages.select {|err| host(err[:source]) == current_host }
     expect(errors).to be_empty, "expected no JavaScript errors, got #{errors.inspect}"
 
+    # Should have element "pageid-tcpa" on the page
+    expect(page).to have_css(".pageid-tcpa", minimum: 1), "Missing element with '.pageid-tcpa' class"
+
     # Inject a custom setTimeout onto the page that only waits 10 ms (we don't want to wait while testing)
     page.execute_script(LandingmanHelpers::WINDOW_TIMEOUT_JS_OVERRIDE)
 
