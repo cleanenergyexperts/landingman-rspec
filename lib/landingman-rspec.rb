@@ -16,7 +16,7 @@ module LandingmanHelpers
   TEST_DATA = {
     zip: '90266',
     phone: '8886306690',
-    first_name: 'TEST',
+    first_name: 'SYNTHETICS',
     last_name: 'TESTER',
     email: 'SyntheticsTest@SynthTest.com',
     electric_bill: '$401-500',
