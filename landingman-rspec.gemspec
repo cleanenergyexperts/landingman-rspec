@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "landingman-rspec"
-  s.version     = "0.0.13"
+  s.version     = "0.0.14"
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Matt Snider"]
   s.email       = ["matt@cleanenergyexperts.com"]

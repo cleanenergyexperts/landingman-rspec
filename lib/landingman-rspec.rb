@@ -81,7 +81,7 @@ EOT
     return false
   end
 
-  def fill_out_input(container, input, value)
+  def fill_out_input(container, input, value, retries = 3)
     case input['type']
     when 'radio'
       container.choose(input['id'] || input['name']) if input.value == value
@@ -89,6 +89,20 @@ EOT
       container.check(input['id'] || input['name']) if input.value == value
     else
       input.set(value)
+    end
+  rescue Capybara::Webkit::ClickFailed => e
+    # Hide the overlapping element and then do a regular click
+    if retries > 0 && m = e.message.match(/overlapping element (.*) at position/) then
+      overlapping_xpath = m.captures.first.strip
+      overlapping_script = <<EOT
+var elem = document.evaluate("#{overlapping_xpath}", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+if (elem)
+  elem.parentNode.removeChild(elem);
+EOT
+      page.execute_script(overlapping_script)
+      fill_out_input(container, input, value, retries - 1)
+    else
+      raise e
     end
   end
 
@@ -127,6 +141,8 @@ EOT
         input.set(TEST_DATA[:city])
       when 'state'
         input.set(TEST_DATA[:state])
+      when 'ownHouse' # Deprecated parameter for backwards compatibility only
+        fill_out_input(form, input, 'YES')
       else
         # unknown input
       end
