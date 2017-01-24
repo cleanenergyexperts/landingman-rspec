@@ -240,6 +240,26 @@ RSpec.shared_examples 'a landing page' do |url|
     # CHECK: PageId is present
     expect(pageid_type(page)).to eq('object')
 
+    #should not have certain warnings (font load, etc)
+    messages = page.driver.console_messages.select
+    failure_messages = []
+
+    #if a console message contains one of the following substrings, then fail!
+    warning_text_to_fail = ["pixel","font"]
+
+    messages.each do |msg|
+      unless msg[:message].nil?
+        message_text = msg[:message].to_s.downcase 
+        should_fail = warning_text_to_fail.any? {|fail_text| message_text.include? fail_text}
+          if should_fail
+            failure_messages.push(msg)
+          end
+       end
+    end
+
+    #if any console messages contain our "fail text", then fail the build and print the info
+    expect(failure_messages).to be_empty, "expected no critical warnings, got #{failure_messages.inspect}"
+
     # Should not have any JavaScript errors in the console (only look at errors from the same host for now)
     current_host = host(current_url)
     errors = page.driver.error_messages.select {|err| host(err[:source]) == current_host }
