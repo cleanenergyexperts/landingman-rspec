@@ -19,7 +19,7 @@ module LandingmanHelpers
     first_name: 'SYNTHETICS',
     last_name: 'TESTER',
     email: 'SyntheticsTest@SynthTest.com',
-    electric_bill: '$401-500',
+    electric_bill: '$301-400',
     property_ownership: 'OWN',
     property_ownership_select: 'single',
     home_type: 'single',
@@ -106,9 +106,11 @@ EOT
     end
   end
 
-  def try_select(options, value)
+  def try_select(options, value1, value2 = nil)
     return nil if options.empty?
-    option = options.find {|o| o.value == value } || options.last
+    option   = options.find {|o| o.value == value1 }
+    option ||= options.find {|o| o.value == value2 } unless value2.nil?
+    option ||= options.last
     option.select_option
   end
 
@@ -155,7 +157,7 @@ EOT
       when 'electric_bill'
         try_select(options, TEST_DATA[:electric_bill])
       when 'property_ownership'
-        try_select(options, TEST_DATA[:property_ownership_select])
+        try_select(options, TEST_DATA[:property_ownership_select], TEST_DATA[:property_ownership])
       when 'home_type'
         try_select(options, TEST_DATA[:home_type])
       when 'electric_utility'
